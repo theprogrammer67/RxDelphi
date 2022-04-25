@@ -32,10 +32,10 @@ implementation
 {$R *.dfm}
 
 procedure TfrmMain.btn1Click(Sender: TObject);
-var
-  LCompletable: ICompletable<TTestValue>;
+//var
+//  LCompletable: ICompletable<TTestValue>;
 begin
-  LCompletable := TComplectable<TTestValue>.Create(Execute).Subscribe(Complete);
+  TComplectable<TTestValue>.Create(Self, Execute).Subscribe(Complete);
 end;
 
 procedure TfrmMain.Complete(const AValue: TTestValue);
