@@ -3,12 +3,12 @@ unit uCompletable;
 interface
 
 uses System.Classes, System.SysUtils, Winapi.Windows,
-  System.Generics.Collections;
+  System.Generics.Collections, System.TypInfo, System.Rtti;
 
 type
   TComplectable<T> = class
   type
-    TOnComplete = procedure(const AValue: T) of object;
+    TOnComplete = procedure(var AValue: T) of object;
     TExecuteMeth = function: T of object;
 
   class var
@@ -70,6 +70,10 @@ begin
     FThread.WaitFor;
     FreeAndNil(FThread);
   end;
+
+  if PTypeInfo(System.TypeInfo(T)).Kind = tkClass then
+    FreeAndNil(PObject(@FValue)^);
+
   inherited;
 end;
 
@@ -82,7 +86,11 @@ end;
 procedure TComplectable<T>.DoComplete;
 begin
   if Assigned(FOnComplete) then
+  begin
     FOnComplete(FValue);
+    if PTypeInfo(System.TypeInfo(T)).Kind = tkClass then
+      PObject(@FValue)^ := nil;
+  end;
 end;
 
 procedure TComplectable<T>.DoDestroy;

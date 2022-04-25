@@ -19,7 +19,7 @@ type
     procedure btn1Click(Sender: TObject);
   private
     function Execute: TTestValue;
-    procedure Complete(const AValue: TTestValue);
+    procedure Complete(var AValue: TTestValue);
   public
     { Public declarations }
   end;
@@ -36,10 +36,10 @@ begin
   TComplectable<TTestValue>.Create(Self, Execute).Subscribe(Complete);
 end;
 
-procedure TfrmMain.Complete(const AValue: TTestValue);
+procedure TfrmMain.Complete(var AValue: TTestValue);
 begin
   ShowMessage(AValue.Name);
-  AValue.Free;
+  FreeAndNil(AValue);
 end;
 
 function TfrmMain.Execute: TTestValue;
@@ -49,7 +49,7 @@ begin
     Result.Name := 'Igor';
     Result.Age := 55;
     Sleep(3000);
-    raise Exception.Create('Error Message');
+//    raise Exception.Create('Error Message');
   except
     Result.Free;
     raise;
