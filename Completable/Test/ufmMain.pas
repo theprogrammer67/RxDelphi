@@ -5,7 +5,7 @@ interface
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants,
   System.Classes, Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs,
-  Vcl.StdCtrls, uCompletable;
+  Vcl.StdCtrls, uCompletable, ufmSecond;
 
 type
   TTestValue = class
@@ -16,7 +16,10 @@ type
 
   TfrmMain = class(TForm)
     btn1: TButton;
+    btn2: TButton;
     procedure btn1Click(Sender: TObject);
+    procedure btn2Click(Sender: TObject);
+    procedure FormDestroy(Sender: TObject);
   private
     function Execute: TTestValue;
     procedure Complete(var AValue: TTestValue);
@@ -36,6 +39,17 @@ begin
   TComplectable<TTestValue>.Create(Self, Execute).Subscribe(Complete);
 end;
 
+procedure TfrmMain.btn2Click(Sender: TObject);
+begin
+  if not Assigned(Form3) then
+  begin
+    Form3 := TForm3.Create(nil);
+    Form3.Show;
+  end
+  else
+    FreeAndNil(Form3);
+end;
+
 procedure TfrmMain.Complete(var AValue: TTestValue);
 begin
   ShowMessage(AValue.Name);
@@ -49,11 +63,16 @@ begin
     Result.Name := 'Igor';
     Result.Age := 55;
     Sleep(3000);
-//    raise Exception.Create('Error Message');
+    // raise Exception.Create('Error Message');
   except
     Result.Free;
     raise;
   end;
+end;
+
+procedure TfrmMain.FormDestroy(Sender: TObject);
+begin
+  FreeAndNil(Form3);
 end;
 
 end.

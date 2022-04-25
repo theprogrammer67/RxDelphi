@@ -3,7 +3,8 @@ program RxTest;
 uses
   Vcl.Forms,
   ufmMain in 'ufmMain.pas' {frmMain},
-  uCompletable in '..\uCompletable.pas';
+  uCompletable in '..\uCompletable.pas',
+  ufmSecond in 'ufmSecond.pas' {Form3};
 
 {$R *.res}
 

@@ -88,6 +88,7 @@ begin
   if Assigned(FOnComplete) then
   begin
     FOnComplete(FValue);
+    // „тобы FValue не уничтожилс€ при уничтожении TComplectable
     if PTypeInfo(System.TypeInfo(T)).Kind = tkClass then
       PObject(@FValue)^ := nil;
   end;
