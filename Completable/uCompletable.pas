@@ -17,9 +17,10 @@ type
     FExecuteMeth: TExecuteMeth;
     FOnComplete: TOnComplete;
     FValue: T;
+    FException: Exception;
   private
     procedure DoComplete;
-    procedure DoException(AError: string);
+    procedure DoHandleException;
   public
     constructor Create(const AExecuteMeth: TExecuteMeth);
     function Subscribe(AOnConmplete: TOnComplete): TComplectable<T>;
@@ -27,7 +28,7 @@ type
 
 implementation
 
-  { TComplectable<T> }
+{ TComplectable<T> }
 
 constructor TComplectable<T>.Create(const AExecuteMeth: TExecuteMeth);
 begin
@@ -40,9 +41,12 @@ begin
     FOnComplete(FValue);
 end;
 
-procedure TComplectable<T>.DoException(AError: string);
+procedure TComplectable<T>.DoHandleException;
 begin
-  MessageBox(0, PWideChar(AError), 'Exception', MB_OK or MB_ICONERROR);
+  if Assigned(FException) then
+    ShowException(FException, nil);
+//    MessageBox(0, PWideChar(FException.ToString), 'Exception',
+//      MB_OK or MB_ICONERROR);
 end;
 
 function TComplectable<T>.Subscribe(AOnConmplete: TOnComplete)
@@ -52,6 +56,7 @@ begin
   if not Assigned(FExecuteMeth) then
     raise Exception.Create('Execute method not assigned');
 
+  FException := nil;
   FOnComplete := AOnConmplete;
   TThread.CreateAnonymousThread(
     procedure
@@ -62,12 +67,8 @@ begin
         FValue := FExecuteMeth;
         TThread.Synchronize(nil, DoComplete);
       except
-        LError := Exception(ExceptObject).ToString;
-        TThread.Queue(nil,
-          procedure
-          begin
-            DoException(LError)
-          end);
+        FException := Exception(ExceptObject);
+        TThread.Synchronize(nil, DoHandleException);
       end;
     end).Start;
 end;
