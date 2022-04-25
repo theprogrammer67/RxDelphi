@@ -2,17 +2,21 @@ unit uCompletable;
 
 interface
 
-uses System.Classes, System.SysUtils, Winapi.Windows, Vcl.Dialogs;
+uses System.Classes, System.SysUtils, Winapi.Windows,
+  System.Generics.Collections;
 
 type
-  ICompletable<T> = interface
-    ['{FDB9282B-84DE-4A80-8B77-2203711352ED}']
-  end;
-
-  TComplectable<T> = class(TInterfacedObject, ICompletable<T>)
+  TComplectable<T> = class
   type
     TOnComplete = procedure(const AValue: T) of object;
     TExecuteMeth = function: T of object;
+
+  class var
+    InstanceList: TObjectList<TObject>;
+    Finalizing: Boolean;
+  private
+    class constructor Create;
+    class destructor Destroy;
   private
     FThread: TThread;
     FExecuteMeth: TExecuteMeth;
@@ -34,45 +38,20 @@ type
     function Subscribe(AOnConmplete: TOnComplete): TComplectable<T>;
   end;
 
-var
-  InstanceArray: TArray<TObject>;
-  Finalizing: Boolean;
-
-procedure AddInstance(AInstance: TObject);
-procedure RemoveInstance(AInstance: TObject);
-
 implementation
-
-procedure AddInstance(AInstance: TObject);
-begin
-  SetLength(InstanceArray, Length(InstanceArray) + 1);
-  InstanceArray[High(InstanceArray)] := AInstance;
-end;
-
-procedure ClearInstances;
-var
-  I: Integer;
-begin
-  for I := High(InstanceArray) downto Low(InstanceArray) do
-    FreeAndNil(InstanceArray[I]);
-  SetLength(InstanceArray, 0);
-end;
-
-procedure RemoveInstance(AInstance: TObject);
-var
-  I: Integer;
-begin
-  for I := Low(InstanceArray) to High(InstanceArray) do
-    if AInstance = InstanceArray[I] then
-      InstanceArray[I] := nil;
-end;
 
 { TComplectable<T> }
 
 constructor TComplectable<T>.Create(const AExecuteMeth: TExecuteMeth);
 begin
   FExecuteMeth := AExecuteMeth;
-  AddInstance(Self);
+  InstanceList.Add(Self);
+end;
+
+class constructor TComplectable<T>.Create;
+begin
+  Finalizing := False;
+  InstanceList := TObjectList<TObject>.Create;
 end;
 
 constructor TComplectable<T>.Create(AOwner: TObject;
@@ -85,7 +64,6 @@ end;
 
 destructor TComplectable<T>.Destroy;
 begin
-  // FThread.DisposeOf;
   if Assigned(FThread) then
   begin
     FThread.Terminate;
@@ -95,26 +73,27 @@ begin
   inherited;
 end;
 
+class destructor TComplectable<T>.Destroy;
+begin
+  Finalizing := True;
+  InstanceList.Free;
+end;
+
 procedure TComplectable<T>.DoComplete;
 begin
   if Assigned(FOnComplete) then
     FOnComplete(FValue);
-  // FreeAndNil(FThread);
 end;
 
 procedure TComplectable<T>.DoDestroy;
 begin
-  RemoveInstance(Self);
-  Free;
+  InstanceList.Remove(Self);
 end;
 
 procedure TComplectable<T>.DoHandleException;
 begin
   if Assigned(FException) then
     ShowException(FException, nil);
-  // MessageBox(0, PWideChar(FException.ToString), 'Exception',
-  // MB_OK or MB_ICONERROR);
-  // FreeAndNil(FThread);
 end;
 
 function TComplectable<T>.NeedCallEvent: Boolean;
@@ -153,15 +132,5 @@ begin
   FThread.FreeOnTerminate := False;
   FThread.Start;
 end;
-
-initialization
-
-Finalizing := False;
-SetLength(InstanceArray, 0);
-
-finalization
-
-Finalizing := True;
-ClearInstances;
 
 end.

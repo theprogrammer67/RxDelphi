@@ -32,8 +32,6 @@ implementation
 {$R *.dfm}
 
 procedure TfrmMain.btn1Click(Sender: TObject);
-//var
-//  LCompletable: ICompletable<TTestValue>;
 begin
   TComplectable<TTestValue>.Create(Self, Execute).Subscribe(Complete);
 end;
