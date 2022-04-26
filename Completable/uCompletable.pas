@@ -10,8 +10,10 @@ type
   type
     TExecuteMeth = function: T of object;
     TExecuteFunc = TFunc<T>;
-    TOnComplete = procedure(AValue: T) of object;
-    TOnError = procedure(E: Exception) of object;
+    TOnCompleteMeth = procedure(AValue: T) of object;
+    TOnCompleteProc = TProc<T>;
+    TOnErrorMeth = procedure(E: Exception) of object;
+    TOnErrorProc = reference to procedure(E: Exception);
 
   class var
     Instances: TObjectList<TObject>;
@@ -22,8 +24,8 @@ type
   private
     FThread: TThread;
     FExecuteFunc: TExecuteFunc;
-    FOnComplete: TOnComplete;
-    FOnError: TOnError;
+    FOnCompleteProc: TOnCompleteProc;
+    FOnErrorProc: TOnErrorProc;
     FValue: T;
     FException: Exception;
     FHasOwner: Boolean;
@@ -37,16 +39,25 @@ type
     procedure SetOwner(const Value: IInterfaceComponentReference);
   public
     constructor Create; overload;
+    destructor Destroy; override;
+  public
     constructor Create(const AExecuteFunc: TExecuteFunc); overload;
     constructor Create(const AExecuteMeth: TExecuteMeth); overload;
+
     constructor Create(AOwner: IInterfaceComponentReference;
       const AExecuteMeth: TExecuteMeth); overload;
     constructor Create(AOwner: IInterfaceComponentReference;
       const AExecuteFunc: TExecuteFunc); overload;
-    destructor Destroy; override;
-    function Subscribe(AOnConmplete: TOnComplete): TComplectable<T>; overload;
-    function Subscribe(AOnConmplete: TOnComplete; AOnError: TOnError)
+
+    function Subscribe(AOnConmpleteProc: TOnCompleteProc)
       : TComplectable<T>; overload;
+    function Subscribe(AOnConmpleteMeth: TOnCompleteMeth)
+      : TComplectable<T>; overload;
+
+    function Subscribe(AOnConmpleteProc: TOnCompleteProc;
+      AOnErrorProc: TOnErrorProc): TComplectable<T>; overload;
+    function Subscribe(AOnConmpleteMeth: TOnCompleteMeth;
+      AOnErrorMeth: TOnErrorMeth): TComplectable<T>; overload;
   private
     property Owner: IInterfaceComponentReference read FOwner write SetOwner;
   end;
@@ -100,9 +111,9 @@ end;
 
 procedure TComplectable<T>.DoComplete;
 begin
-  if Assigned(FOnComplete) then
+  if Assigned(FOnCompleteProc) then
   begin
-    FOnComplete(FValue);
+    FOnCompleteProc(FValue);
     // „тобы FValue не уничтожилс€ при уничтожении Self (TComplectable)
     if PTypeInfo(System.TypeInfo(T)).Kind = tkClass then
       PObject(@FValue)^ := nil;
@@ -118,8 +129,8 @@ procedure TComplectable<T>.DoHandleException;
 begin
   if Assigned(FException) then
   begin
-    if Assigned(FOnError) then
-      FOnError(FException)
+    if Assigned(FOnErrorProc) then
+      FOnErrorProc(FException)
     else
       ShowException(FException, nil);
   end;
@@ -137,16 +148,40 @@ begin
   FOwner := Value;
 end;
 
-function TComplectable<T>.Subscribe(AOnConmplete: TOnComplete;
-AOnError: TOnError): TComplectable<T>;
+function TComplectable<T>.Subscribe(AOnConmpleteMeth: TOnCompleteMeth;
+AOnErrorMeth: TOnErrorMeth): TComplectable<T>;
+begin
+  Result := Subscribe(
+    procedure(AValue: T)
+    begin
+      AOnConmpleteMeth(AValue);
+    end,
+    procedure(E: Exception)
+    begin
+      AOnErrorMeth(E);
+    end);
+end;
+
+function TComplectable<T>.Subscribe(AOnConmpleteMeth: TOnCompleteMeth)
+  : TComplectable<T>;
+begin
+  Subscribe(
+    procedure(AValue: T)
+    begin
+      AOnConmpleteMeth(AValue);
+    end);
+end;
+
+function TComplectable<T>.Subscribe(AOnConmpleteProc: TOnCompleteProc;
+AOnErrorProc: TOnErrorProc): TComplectable<T>;
 begin
   if not Assigned(FExecuteFunc) then
     raise Exception.Create('Execute function not assigned');
 
   Result := Self;
   FException := nil;
-  FOnComplete := AOnConmplete;
-  FOnError := AOnError;
+  FOnCompleteProc := AOnConmpleteProc;
+  FOnErrorProc := AOnErrorProc;
 
   FThread := TThread.CreateAnonymousThread(
     procedure
@@ -170,10 +205,10 @@ begin
   FThread.Start;
 end;
 
-function TComplectable<T>.Subscribe(AOnConmplete: TOnComplete)
+function TComplectable<T>.Subscribe(AOnConmpleteProc: TOnCompleteProc)
   : TComplectable<T>;
 begin
-  Result := Subscribe(AOnConmplete, nil);
+  Result := Subscribe(AOnConmpleteProc, nil);
 end;
 
 constructor TComplectable<T>.Create(AOwner: IInterfaceComponentReference;
