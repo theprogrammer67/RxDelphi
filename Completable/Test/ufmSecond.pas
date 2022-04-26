@@ -23,7 +23,7 @@ type
   private
     function ExecuteSuccess: TTestValue1;
     function ExecuteError: TTestValue1;
-    procedure Complete(var AValue: TTestValue1);
+    procedure Complete(AValue: TTestValue1);
   public
     { Public declarations }
   end;
@@ -47,7 +47,7 @@ begin
     .Subscribe(Complete);
 end;
 
-procedure TfrmSecond.Complete(var AValue: TTestValue1);
+procedure TfrmSecond.Complete(AValue: TTestValue1);
 begin
   ShowMessage(AValue.Name);
   FreeAndNil(AValue);

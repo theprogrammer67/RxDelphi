@@ -9,7 +9,7 @@ type
   TComplectable<T> = class
   type
     TExecuteMeth = function: T of object;
-    TOnComplete = procedure(var AValue: T) of object;
+    TOnComplete = procedure(AValue: T) of object;
     TOnError = procedure(E: Exception) of object;
 
   class var
