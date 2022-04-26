@@ -2,8 +2,8 @@ object frmSecond: TfrmSecond
   Left = 0
   Top = 0
   Caption = 'frmSecond'
-  ClientHeight = 182
-  ClientWidth = 244
+  ClientHeight = 128
+  ClientWidth = 190
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
   Font.Color = clWindowText
@@ -15,13 +15,22 @@ object frmSecond: TfrmSecond
   OnClose = FormClose
   PixelsPerInch = 96
   TextHeight = 13
-  object btn1: TButton
-    Left = 48
-    Top = 56
-    Width = 75
+  object btnExecuteSuccess: TButton
+    Left = 24
+    Top = 24
+    Width = 137
     Height = 25
-    Caption = 'btn1'
+    Caption = 'btnExecuteSuccess'
     TabOrder = 0
-    OnClick = btn1Click
+    OnClick = btnExecuteSuccessClick
+  end
+  object btnExecuteError: TButton
+    Left = 24
+    Top = 55
+    Width = 137
+    Height = 25
+    Caption = 'btnExecuteError'
+    TabOrder = 1
+    OnClick = btnExecuteErrorClick
   end
 end

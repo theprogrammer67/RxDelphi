@@ -14,13 +14,15 @@ type
     Age: Integer;
   end;
 
-
   TfrmSecond = class(TForm)
-    btn1: TButton;
-    procedure btn1Click(Sender: TObject);
+    btnExecuteSuccess: TButton;
+    btnExecuteError: TButton;
+    procedure btnExecuteSuccessClick(Sender: TObject);
     procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure btnExecuteErrorClick(Sender: TObject);
   private
-    function Execute: TTestValue1;
+    function ExecuteSuccess: TTestValue1;
+    function ExecuteError: TTestValue1;
     procedure Complete(var AValue: TTestValue1);
   public
     { Public declarations }
@@ -33,9 +35,16 @@ implementation
 
 {$R *.dfm}
 
-procedure TfrmSecond.btn1Click(Sender: TObject);
+procedure TfrmSecond.btnExecuteErrorClick(Sender: TObject);
 begin
-  TComplectable<TTestValue1>.Create(frmSecond, Execute).Subscribe(Complete);
+  TComplectable<TTestValue1>.Create(frmSecond, ExecuteError)
+    .Subscribe(Complete);
+end;
+
+procedure TfrmSecond.btnExecuteSuccessClick(Sender: TObject);
+begin
+  TComplectable<TTestValue1>.Create(frmSecond, ExecuteSuccess)
+    .Subscribe(Complete);
 end;
 
 procedure TfrmSecond.Complete(var AValue: TTestValue1);
@@ -44,14 +53,27 @@ begin
   FreeAndNil(AValue);
 end;
 
-function TfrmSecond.Execute: TTestValue1;
+function TfrmSecond.ExecuteError: TTestValue1;
 begin
   Result := TTestValue1.Create;
   try
     Result.Name := 'Oleg';
     Result.Age := 22;
     Sleep(3000);
-    // raise Exception.Create('Error Message');
+    raise Exception.Create('Error Message 1');
+  except
+    Result.Free;
+    raise;
+  end;
+end;
+
+function TfrmSecond.ExecuteSuccess: TTestValue1;
+begin
+  Result := TTestValue1.Create;
+  try
+    Result.Name := 'Oleg';
+    Result.Age := 22;
+    Sleep(3000);
   except
     Result.Free;
     raise;

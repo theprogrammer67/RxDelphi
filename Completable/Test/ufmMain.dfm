@@ -15,22 +15,31 @@ object frmMain: TfrmMain
   OnDestroy = FormDestroy
   PixelsPerInch = 96
   TextHeight = 13
-  object btn1: TButton
-    Left = 64
-    Top = 40
-    Width = 75
+  object btnExecuteSuccess: TButton
+    Left = 8
+    Top = 8
+    Width = 129
     Height = 25
-    Caption = 'btn1'
+    Caption = 'btnExecuteSuccess'
     TabOrder = 0
-    OnClick = btn1Click
+    OnClick = btnExecuteSuccessClick
   end
-  object btn2: TButton
-    Left = 496
-    Top = 40
-    Width = 75
+  object btnShowForm: TButton
+    Left = 520
+    Top = 8
+    Width = 107
     Height = 25
-    Caption = 'btn2'
+    Caption = 'btnShowForm'
     TabOrder = 1
-    OnClick = btn2Click
+    OnClick = btnShowFormClick
+  end
+  object btnExecuteError: TButton
+    Left = 8
+    Top = 39
+    Width = 129
+    Height = 25
+    Caption = 'btnExecuteError'
+    TabOrder = 2
+    OnClick = btnExecuteErrorClick
   end
 end

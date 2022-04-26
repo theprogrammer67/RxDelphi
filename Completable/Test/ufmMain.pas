@@ -15,13 +15,16 @@ type
   end;
 
   TfrmMain = class(TForm)
-    btn1: TButton;
-    btn2: TButton;
-    procedure btn1Click(Sender: TObject);
-    procedure btn2Click(Sender: TObject);
+    btnExecuteSuccess: TButton;
+    btnShowForm: TButton;
+    btnExecuteError: TButton;
+    procedure btnExecuteSuccessClick(Sender: TObject);
+    procedure btnShowFormClick(Sender: TObject);
     procedure FormDestroy(Sender: TObject);
+    procedure btnExecuteErrorClick(Sender: TObject);
   private
-    function Execute: TTestValue;
+    function ExecuteSuccess: TTestValue;
+    function ExecuteError: TTestValue;
     procedure Complete(var AValue: TTestValue);
   public
     { Public declarations }
@@ -34,12 +37,17 @@ implementation
 
 {$R *.dfm}
 
-procedure TfrmMain.btn1Click(Sender: TObject);
+procedure TfrmMain.btnExecuteErrorClick(Sender: TObject);
 begin
-  TComplectable<TTestValue>.Create(Self, Execute).Subscribe(Complete);
+  TComplectable<TTestValue>.Create(Self, ExecuteError).Subscribe(Complete);
 end;
 
-procedure TfrmMain.btn2Click(Sender: TObject);
+procedure TfrmMain.btnExecuteSuccessClick(Sender: TObject);
+begin
+  TComplectable<TTestValue>.Create(Self, ExecuteSuccess).Subscribe(Complete);
+end;
+
+procedure TfrmMain.btnShowFormClick(Sender: TObject);
 begin
   if not Assigned(frmSecond) then
   begin
@@ -56,14 +64,27 @@ begin
   FreeAndNil(AValue);
 end;
 
-function TfrmMain.Execute: TTestValue;
+function TfrmMain.ExecuteError: TTestValue;
 begin
   Result := TTestValue.Create;
   try
     Result.Name := 'Igor';
     Result.Age := 55;
     Sleep(3000);
-    // raise Exception.Create('Error Message');
+    raise Exception.Create('Error Message');
+  except
+    Result.Free;
+    raise;
+  end;
+end;
+
+function TfrmMain.ExecuteSuccess: TTestValue;
+begin
+  Result := TTestValue.Create;
+  try
+    Result.Name := 'Igor';
+    Result.Age := 55;
+    Sleep(3000);
   except
     Result.Free;
     raise;
