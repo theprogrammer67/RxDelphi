@@ -9,6 +9,7 @@ type
   TComplectable<T> = class
   type
     TExecuteMeth = function: T of object;
+    TExecuteFunc = TFunc<T>;
     TOnComplete = procedure(AValue: T) of object;
     TOnError = procedure(E: Exception) of object;
 
@@ -20,7 +21,7 @@ type
     class destructor Destroy;
   private
     FThread: TThread;
-    FExecuteMeth: TExecuteMeth;
+    FExecuteFunc: TExecuteFunc;
     FOnComplete: TOnComplete;
     FOnError: TOnError;
     FValue: T;
@@ -33,14 +34,21 @@ type
     procedure DoHandleException;
     procedure DoDestroy;
     function NeedCallEvent: Boolean;
+    procedure SetOwner(const Value: IInterfaceComponentReference);
   public
+    constructor Create; overload;
+    constructor Create(const AExecuteFunc: TExecuteFunc); overload;
     constructor Create(const AExecuteMeth: TExecuteMeth); overload;
     constructor Create(AOwner: IInterfaceComponentReference;
       const AExecuteMeth: TExecuteMeth); overload;
+    constructor Create(AOwner: IInterfaceComponentReference;
+      const AExecuteFunc: TExecuteFunc); overload;
     destructor Destroy; override;
     function Subscribe(AOnConmplete: TOnComplete): TComplectable<T>; overload;
     function Subscribe(AOnConmplete: TOnComplete; AOnError: TOnError)
       : TComplectable<T>; overload;
+  private
+    property Owner: IInterfaceComponentReference read FOwner write SetOwner;
   end;
 
 implementation
@@ -49,8 +57,11 @@ implementation
 
 constructor TComplectable<T>.Create(const AExecuteMeth: TExecuteMeth);
 begin
-  FExecuteMeth := AExecuteMeth;
-  Instances.Add(Self);
+  Create(
+    function: T
+    begin
+      Result := AExecuteMeth;
+    end);
 end;
 
 class constructor TComplectable<T>.Create;
@@ -60,10 +71,9 @@ begin
 end;
 
 constructor TComplectable<T>.Create(AOwner: IInterfaceComponentReference;
-  const AExecuteMeth: TExecuteMeth);
+const AExecuteMeth: TExecuteMeth);
 begin
-  FHasOwner := True;
-  FOwner := AOwner;
+  Owner := AOwner;
   Create(AExecuteMeth);
 end;
 
@@ -121,11 +131,17 @@ begin
     (not Finalizing);
 end;
 
-function TComplectable<T>.Subscribe(AOnConmplete: TOnComplete;
-  AOnError: TOnError): TComplectable<T>;
+procedure TComplectable<T>.SetOwner(const Value: IInterfaceComponentReference);
 begin
-  if not Assigned(FExecuteMeth) then
-    raise Exception.Create('Execute method not assigned');
+  FHasOwner := True;
+  FOwner := Value;
+end;
+
+function TComplectable<T>.Subscribe(AOnConmplete: TOnComplete;
+AOnError: TOnError): TComplectable<T>;
+begin
+  if not Assigned(FExecuteFunc) then
+    raise Exception.Create('Execute function not assigned');
 
   Result := Self;
   FException := nil;
@@ -137,7 +153,7 @@ begin
     begin
       try
         try
-          FValue := FExecuteMeth;
+          FValue := FExecuteFunc;
           if NeedCallEvent then
             TThread.Synchronize(nil, DoComplete);
         except
@@ -158,6 +174,24 @@ function TComplectable<T>.Subscribe(AOnConmplete: TOnComplete)
   : TComplectable<T>;
 begin
   Result := Subscribe(AOnConmplete, nil);
+end;
+
+constructor TComplectable<T>.Create(AOwner: IInterfaceComponentReference;
+const AExecuteFunc: TExecuteFunc);
+begin
+  Owner := AOwner;
+  Create(AExecuteFunc);
+end;
+
+constructor TComplectable<T>.Create(const AExecuteFunc: TExecuteFunc);
+begin
+  FExecuteFunc := AExecuteFunc;
+  Create;
+end;
+
+constructor TComplectable<T>.Create;
+begin
+  Instances.Add(Self);
 end;
 
 end.
