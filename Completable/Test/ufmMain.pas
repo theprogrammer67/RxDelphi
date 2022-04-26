@@ -5,7 +5,7 @@ interface
 uses
   Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants,
   System.Classes, Vcl.Graphics, Vcl.Controls, Vcl.Forms, Vcl.Dialogs,
-  Vcl.StdCtrls, uCompletable, ufmSecond;
+  Vcl.StdCtrls, uCompletable, ufmSecond, System.Generics.Collections;
 
 type
   TTestValue = class
@@ -41,13 +41,13 @@ end;
 
 procedure TfrmMain.btn2Click(Sender: TObject);
 begin
-  if not Assigned(Form3) then
+  if not Assigned(frmSecond) then
   begin
-    Form3 := TForm3.Create(nil);
-    Form3.Show;
+    frmSecond := TfrmSecond.Create(nil);
+    frmSecond.Show;
   end
   else
-    FreeAndNil(Form3);
+    FreeAndNil(frmSecond);
 end;
 
 procedure TfrmMain.Complete(var AValue: TTestValue);
@@ -72,7 +72,7 @@ end;
 
 procedure TfrmMain.FormDestroy(Sender: TObject);
 begin
-  FreeAndNil(Form3);
+  FreeAndNil(frmSecond);
 end;
 
 end.

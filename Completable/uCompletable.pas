@@ -3,7 +3,7 @@ unit uCompletable;
 interface
 
 uses System.Classes, System.SysUtils, Winapi.Windows,
-  System.Generics.Collections, System.TypInfo, System.Rtti;
+  System.Generics.Collections, System.TypInfo;
 
 type
   TComplectable<T> = class
@@ -12,7 +12,7 @@ type
     TExecuteMeth = function: T of object;
 
   class var
-    InstanceList: TObjectList<TObject>;
+    Instances: TObjectList<TObject>;
     Finalizing: Boolean;
   private
     class constructor Create;
@@ -24,7 +24,8 @@ type
     FValue: T;
     FException: Exception;
     FHasOwner: Boolean;
-    FOwner: TObject;
+    [weak]
+    FOwner: IInterfaceComponentReference;
   private
     procedure DoComplete;
     procedure DoHandleException;
@@ -32,7 +33,7 @@ type
     function NeedCallEvent: Boolean;
   public
     constructor Create(const AExecuteMeth: TExecuteMeth); overload;
-    constructor Create(AOwner: TObject;
+    constructor Create(AOwner: IInterfaceComponentReference;
       const AExecuteMeth: TExecuteMeth); overload;
     destructor Destroy; override;
     function Subscribe(AOnConmplete: TOnComplete): TComplectable<T>;
@@ -45,16 +46,16 @@ implementation
 constructor TComplectable<T>.Create(const AExecuteMeth: TExecuteMeth);
 begin
   FExecuteMeth := AExecuteMeth;
-  InstanceList.Add(Self);
+  Instances.Add(Self);
 end;
 
 class constructor TComplectable<T>.Create;
 begin
   Finalizing := False;
-  InstanceList := TObjectList<TObject>.Create;
+  Instances := TObjectList<TObject>.Create;
 end;
 
-constructor TComplectable<T>.Create(AOwner: TObject;
+constructor TComplectable<T>.Create(AOwner: IInterfaceComponentReference;
   const AExecuteMeth: TExecuteMeth);
 begin
   FHasOwner := True;
@@ -80,7 +81,7 @@ end;
 class destructor TComplectable<T>.Destroy;
 begin
   Finalizing := True;
-  InstanceList.Free;
+  Instances.Free;
 end;
 
 procedure TComplectable<T>.DoComplete;
@@ -96,7 +97,7 @@ end;
 
 procedure TComplectable<T>.DoDestroy;
 begin
-  InstanceList.Remove(Self);
+  Instances.Remove(Self);
 end;
 
 procedure TComplectable<T>.DoHandleException;
@@ -107,7 +108,7 @@ end;
 
 function TComplectable<T>.NeedCallEvent: Boolean;
 begin
-  Result := (((FHasOwner) and (Assigned(FOwner))) or (not FHasOwner)) and
+  Result := ((FHasOwner) and (Assigned(FOwner)) or (not FHasOwner)) and
     (not Finalizing);
 end;
 

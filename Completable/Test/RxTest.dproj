@@ -108,7 +108,7 @@
         </DCCReference>
         <DCCReference Include="..\uCompletable.pas"/>
         <DCCReference Include="ufmSecond.pas">
-            <Form>Form3</Form>
+            <Form>frmSecond</Form>
             <FormType>dfm</FormType>
         </DCCReference>
         <BuildConfiguration Include="Release">

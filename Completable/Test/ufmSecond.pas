@@ -15,9 +15,10 @@ type
   end;
 
 
-  TForm3 = class(TForm)
+  TfrmSecond = class(TForm)
     btn1: TButton;
     procedure btn1Click(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
   private
     function Execute: TTestValue1;
     procedure Complete(var AValue: TTestValue1);
@@ -26,24 +27,24 @@ type
   end;
 
 var
-  Form3: TForm3;
+  frmSecond: TfrmSecond;
 
 implementation
 
 {$R *.dfm}
 
-procedure TForm3.btn1Click(Sender: TObject);
+procedure TfrmSecond.btn1Click(Sender: TObject);
 begin
-  TComplectable<TTestValue1>.Create(Self, Execute).Subscribe(Complete);
+  TComplectable<TTestValue1>.Create(frmSecond, Execute).Subscribe(Complete);
 end;
 
-procedure TForm3.Complete(var AValue: TTestValue1);
+procedure TfrmSecond.Complete(var AValue: TTestValue1);
 begin
   ShowMessage(AValue.Name);
   FreeAndNil(AValue);
 end;
 
-function TForm3.Execute: TTestValue1;
+function TfrmSecond.Execute: TTestValue1;
 begin
   Result := TTestValue1.Create;
   try
@@ -55,6 +56,12 @@ begin
     Result.Free;
     raise;
   end;
+end;
+
+procedure TfrmSecond.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+  Action := caFree;
+  frmSecond := nil;
 end;
 
 end.
