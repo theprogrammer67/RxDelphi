@@ -39,26 +39,36 @@ implementation
 
 procedure TfrmMain.btnExecuteErrorClick(Sender: TObject);
 begin
-  // TComplectable<TTestValue>.Create(Self, ExecuteError).Subscribe(
-  // procedure(AValue: TTestValue)
-  // begin
-  // Complete(AValue);
-  // end,
-  // procedure(E: Exception)
-  // begin
-  // ShowMessage(E.Message);
-  // end);
-  TComplectable<TTestValue>.Create(Self, ExecuteError).Subscribe(Complete);
+//   TComplectable<TTestValue>
+//   .Create(Self, ExecuteError)
+//   .Subscribe(
+//     procedure(AValue: TTestValue)
+//     begin
+//       Complete(AValue);
+//     end,
+//     procedure(E: Exception)
+//     begin
+//       ShowMessage(E.Message);
+//     end);
+
+  TComplectable<TTestValue>
+    .Create(Self, ExecuteError)
+    .Subscribe(Complete);
 end;
 
 procedure TfrmMain.btnExecuteSuccessClick(Sender: TObject);
 begin
-  // TComplectable<TTestValue>.Create(Self, ExecuteSuccess).Subscribe(
-  // procedure(AValue: TTestValue)
-  // begin
-  // Complete(AValue);
-  // end);
-  TComplectable<TTestValue>.Create(Self, ExecuteSuccess).Subscribe(Complete);
+//   TComplectable<TTestValue>
+//    .Create(Self, ExecuteSuccess)
+//    .Subscribe(
+//      procedure(AValue: TTestValue)
+//      begin
+//        Complete(AValue);
+//      end);
+
+  TComplectable<TTestValue>
+    .Create(Self, ExecuteSuccess)
+    .Subscribe(Complete);
 end;
 
 procedure TfrmMain.btnShowFormClick(Sender: TObject);
